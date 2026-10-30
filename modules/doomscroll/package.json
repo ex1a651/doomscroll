@@ -1,0 +1,7 @@
+{
+  "name": "doomscroll-native",
+  "version": "1.0.0",
+  "description": "Swipe + app-usage tracker (AccessibilityService + UsageStats) for the Doomscroll app",
+  "private": true,
+  "main": "index.ts"
+}

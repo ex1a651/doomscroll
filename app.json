@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Doomscroll",
+    "slug": "doomscroll",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B1426",
+    "splash": {
+      "backgroundColor": "#0B1426"
+    },
+    "android": {
+      "package": "com.ex1a651.doomscroll",
+      "versionCode": 1,
+      "backgroundColor": "#0B1426",
+      "edgeToEdgeEnabled": true
+    }
+  }
+}
