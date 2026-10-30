@@ -19,6 +19,8 @@ class DoomscrollAccessibilityService : AccessibilityService() {
     @Volatile var instance: DoomscrollAccessibilityService? = null
       private set
 
+    @Volatile var startupError: String? = null
+
     private val log = ArrayDeque<Map<String, Any>>()
     private const val LOG_SIZE = 80
 
@@ -38,11 +40,30 @@ class DoomscrollAccessibilityService : AccessibilityService() {
 
   override fun onServiceConnected() {
     super.onServiceConnected()
+    // Guard every step: this runs in the app's own process, so an uncaught
+    // throw here would crash the whole app the instant the toggle is switched on.
     instance = this
-    counter.settleMs = Prefs.settleMs(this).toLong()
-    imePackages = loadImePackages()
-    registerScreenOff()
-    Prefs.markConnected(this)
+    installCrashRecorder()
+    try {
+      counter.settleMs = Prefs.settleMs(this).toLong()
+    } catch (t: Throwable) {
+      startupError = "settle: ${t.message}"
+    }
+    try {
+      imePackages = loadImePackages()
+    } catch (t: Throwable) {
+      imePackages = emptySet()
+      startupError = "ime: ${t.message}"
+    }
+    try {
+      registerScreenOff()
+    } catch (t: Throwable) {
+      startupError = "screenOff: ${t.message}"
+    }
+    try {
+      Prefs.markConnected(this)
+    } catch (_: Throwable) {
+    }
   }
 
   override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -50,6 +71,7 @@ class DoomscrollAccessibilityService : AccessibilityService() {
     val pkg = event.packageName?.toString() ?: return
     val now = System.currentTimeMillis()
 
+    try {
     when (event.eventType) {
       AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
         // Ignore overlays that don't mean "left the app": notification shade, keyboard, ourselves.
@@ -102,6 +124,9 @@ class DoomscrollAccessibilityService : AccessibilityService() {
         }
       }
     }
+    } catch (t: Throwable) {
+      startupError = "event: ${t.message}"
+    }
   }
 
   override fun onInterrupt() {}
@@ -123,6 +148,21 @@ class DoomscrollAccessibilityService : AccessibilityService() {
     super.onDestroy()
   }
 
+  /** Records any uncaught crash in this process to prefs so the app can show it on next open. */
+  private fun installCrashRecorder() {
+    val ctx = applicationContext
+    val prev = Thread.getDefaultUncaughtExceptionHandler()
+    Thread.setDefaultUncaughtExceptionHandler { thread, e ->
+      try {
+        val sw = java.io.StringWriter()
+        e.printStackTrace(java.io.PrintWriter(sw))
+        Prefs.setCrash(ctx, sw.toString().take(1500))
+      } catch (_: Throwable) {
+      }
+      prev?.uncaughtException(thread, e)
+    }
+  }
+
   private fun registerScreenOff() {
     val receiver = object : BroadcastReceiver() {
       override fun onReceive(context: Context?, intent: Intent?) {
@@ -130,8 +170,9 @@ class DoomscrollAccessibilityService : AccessibilityService() {
       }
     }
     val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+    // SCREEN_OFF is a system-only broadcast, so the receiver is not exported.
     if (Build.VERSION.SDK_INT >= 33) {
-      registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+      registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
     } else {
       @Suppress("UnspecifiedRegisterReceiverFlag")
       registerReceiver(receiver, filter)

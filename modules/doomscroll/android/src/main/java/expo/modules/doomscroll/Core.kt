@@ -67,4 +67,9 @@ object Prefs {
 
   fun lastSwipeAt(ctx: Context): Long = sp(ctx).getLong("last_swipe", 0L)
   fun markSwipe(ctx: Context, ms: Long) = sp(ctx).edit().putLong("last_swipe", ms).apply()
+
+  fun crash(ctx: Context): String = sp(ctx).getString("crash", "") ?: ""
+  fun setCrash(ctx: Context, msg: String) = sp(ctx).edit().putString("crash", msg).commit()
+  fun clearCrash(ctx: Context) = sp(ctx).edit().remove("crash").apply()
 }
+

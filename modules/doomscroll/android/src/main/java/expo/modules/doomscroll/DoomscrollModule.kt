@@ -25,6 +25,8 @@ class DoomscrollModule : Module() {
         "batteryUnrestricted" to isIgnoringBatteryOptimizations(ctx),
         "lastSwipeAt" to Prefs.lastSwipeAt(ctx).toDouble(),
         "lastConnectedAt" to Prefs.lastConnected(ctx).toDouble(),
+        "startupError" to (DoomscrollAccessibilityService.startupError ?: ""),
+        "crash" to Prefs.crash(ctx),
       )
     }
 
@@ -66,6 +68,11 @@ class DoomscrollModule : Module() {
 
     Function("clearDebugLog") {
       DoomscrollAccessibilityService.clearLog()
+    }
+
+    Function("clearCrash") {
+      Prefs.clearCrash(context)
+      DoomscrollAccessibilityService.startupError = null
     }
 
     Function("getSettleMs") {

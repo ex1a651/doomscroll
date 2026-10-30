@@ -33,6 +33,24 @@ export default function SetupScreen({ status, refreshing, onRefresh }: Props) {
       contentContainerStyle={styles.container}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accent} colors={[colors.accent]} progressBackgroundColor={colors.surface} />}
     >
+      {status?.crash ? (
+        <Card title="⚠ Last crash">
+          <Text selectable style={styles.crash}>
+            {status.crash}
+          </Text>
+          <View style={{ marginTop: 10, alignSelf: 'flex-start' }}>
+            <Btn
+              title="Clear"
+              kind="ghost"
+              onPress={() => {
+                Doomscroll.clearCrash();
+                onRefresh();
+              }}
+            />
+          </View>
+        </Card>
+      ) : null}
+
       <Card title="1 · Usage access">
         <Step
           state={status?.usageAccess ? 'ok' : 'off'}
@@ -58,6 +76,7 @@ export default function SetupScreen({ status, refreshing, onRefresh }: Props) {
           Accessibility → Downloaded apps → Doomscroll counter → On.{'\n'}
           If it's greyed out or says "Restricted setting": open App info → ⋮ (top right) → "Allow restricted settings", then try again.
         </Text>
+        {status?.startupError ? <Text style={styles.error}>Service error: {status.startupError}</Text> : null}
         <View style={{ marginTop: 10, alignSelf: 'flex-start' }}>
           <Btn title="Open App info" kind="ghost" onPress={() => Doomscroll.openAppDetails()} />
         </View>
@@ -146,6 +165,8 @@ const styles = StyleSheet.create({
   pillText: { fontSize: 12, fontWeight: '700' },
   stepText: { color: colors.text, fontSize: 14, flex: 1, lineHeight: 19 },
   hint: { color: colors.textDim, fontSize: 12, lineHeight: 18, marginTop: 10 },
+  error: { color: colors.bad, fontSize: 12, marginTop: 8 },
+  crash: { color: colors.bad, fontSize: 11, fontFamily: 'monospace', lineHeight: 15 },
   counted: { color: colors.textDim, fontSize: 11 },
   settleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 },
   settleLabel: { color: colors.text, fontSize: 14, flex: 1 },

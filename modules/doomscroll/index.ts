@@ -21,6 +21,8 @@ export type Status = {
   batteryUnrestricted: boolean;
   lastSwipeAt: number;
   lastConnectedAt: number;
+  startupError: string;
+  crash: string;
 };
 
 export type DebugEntry = { t: number; app: AppId; dy: number; counted: boolean; note: string };
@@ -36,6 +38,7 @@ type DoomscrollNative = {
   getHourly(from: string, to: string): Promise<HourlyRow[]>;
   getDebugLog(): DebugEntry[];
   clearDebugLog(): void;
+  clearCrash(): void;
   getSettleMs(): number;
   setSettleMs(ms: number): number;
 };
