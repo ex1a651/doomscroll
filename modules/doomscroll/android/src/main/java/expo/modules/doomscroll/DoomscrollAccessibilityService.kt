@@ -181,7 +181,10 @@ class DoomscrollAccessibilityService : AccessibilityService() {
   }
 
   private fun loadImePackages(): Set<String> {
-    val raw = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_INPUT_METHODS) ?: return emptySet()
-    return raw.split(':').mapNotNull { it.substringBefore('/').takeIf { p -> p.isNotBlank() } }.toSet()
+    // Public API — the Settings.Secure "enabled_input_methods" key is not readable
+    // for apps targeting Android 14+ (SDK 34+).
+    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+      ?: return emptySet()
+    return imm.enabledInputMethodList.mapNotNull { it.packageName?.takeIf { p -> p.isNotBlank() } }.toSet()
   }
 }

@@ -11,7 +11,7 @@
     },
     "android": {
       "package": "com.ex1a651.doomscroll",
-      "versionCode": 2,
+      "versionCode": 3,
       "backgroundColor": "#0B1426",
       "edgeToEdgeEnabled": true
     }
